@@ -49,11 +49,7 @@ public class TaskManager {
 
     public Task createTask(Task task) {
         task.setId(generateId());
-        // Комментарий ревьюера: "Можно сразу добавить status new в объект task, перед передачи его в метод"
-        // Ответ: "Это сделано для защиты от taskManager.createTask(new Task(999L, "title", "desc", TaskStatus.DONE)).
-        //  Можно было бы выдавать ошибку в случае если передан id и статус, но эксепшены мы еще не проходили.
-        //  Можно возвращать null в случае ошибки, но тогда придется постоянно проверять на null после вызова этого метода.
-        //  Добавлю проверку статуса чтоб было понятней для чего это."
+
         if (TaskStatus.NEW != task.getStatus()) {
             task.setStatus(TaskStatus.NEW);
         }
@@ -76,28 +72,23 @@ public class TaskManager {
         subtask.setId(generateId());
         subtask.setStatus(TaskStatus.NEW);
 
+        if (null == subtask.getEpicId()) {
+            System.out.println("No epic specified");
+
+            return null;
+        }
+
+        Epic epic = getEpic(subtask.getEpicId());
+        if (null == epic) {
+            System.out.println("Epic with id=" + subtask.getEpicId() + " not found");
+
+            return null;
+        }
+
         subtasks.put(subtask.getId(), subtask);
 
-        // Комментарий ревьюера: "Лучше сравнить как subtask.getEpicId()!=null"
-        // Ответ: "subtask.getEpicId() был с типом long и не мог быть null.
-        //  Чем Long лучше long? Согласен что 0 выглядит как магическое число.
-        //  Можно было бы ввести константу NEID(not epic id) = 0 и сравнивать с ней.
-        //  ОК, исправил."
-        if (null != subtask.getEpicId()) {
-            Epic epic = getEpic(subtask.getEpicId());
-
-            if (null != epic) {
-                epic.addSubtask(subtask.getId());
-                epic.setStatus(calculateEpicStatus(epic));
-            } else {
-                // Комментарий ревьюера: "Если нет id эпика то лучше писать ошибку в консоль и не добавлять такую сабтаску в коллекцию"
-                // Ответ: "Этого поведения не описано в задаче.
-                //  Можно было бы выбрасывать исключение, но их мы еще не проходили.
-                //  Можно возвращать null в случае ошибки, но придется постоянно проверять на null после вызова этого метода.
-                //  Как по мне, лучше сохранить подзадачу и не привязывать её, чем выдать ошибку и потерять все что вводил пользователь."
-                subtask.setEpicId(0);
-            }
-        }
+        epic.addSubtask(subtask.getId());
+        epic.setStatus(calculateEpicStatus(epic));
 
         return subtask;
     }
@@ -121,17 +112,18 @@ public class TaskManager {
             return null;
         }
 
-        // Нельзя менять статус эпика вручную
-        Epic oldEpic = getEpic(epic.getId());
-        if (epic.getStatus() != oldEpic.getStatus()) {
-            // Комментарий ревьюера: "После добавления сабтасок лучше проверить статус у эпика через метод calculateEpicStatus()"
-            // Ответ: "Тут нет добавления сабтасок, это защита от изменения статуса эпика при его обновлении.
-            //  Например: taskManager.updateEpic(new Epic(1L, "test", "test", TaskStatus.DONE))"
-            epic.setStatus(oldEpic.getStatus());
-        }
-
         // Восстанавливаем привязанные подзадачи
+        Epic oldEpic = getEpic(epic.getId());
         epic.setSubtaskIds(oldEpic.getSubtaskIds());
+
+        // Нельзя менять статус эпика вручную
+        if (epic.getStatus() != oldEpic.getStatus()) {
+            // Комментарий ревьюера: "Даже если такое придет (taskManager.updateEpic(new Epic(1L, "test", "test", TaskStatus.DONE))),
+            //   метод calculateEpicStatus() пересчитает его в правильный статус"
+            // Ответ: "Да, пересчитает и выдаст тот же статус что и oldEpic.getStatus(). Не понятно зачем делать лишний пересчет статуса.
+            //   Ок, исправил."
+            epic.setStatus(calculateEpicStatus(epic));
+        }
 
         epics.put(epic.getId(), epic);
 
@@ -145,9 +137,13 @@ public class TaskManager {
             return null;
         }
 
-        if (null != subtask.getEpicId() && null == getEpic(subtask.getEpicId())) {
-            // Комментарий ревьюера: "Аналогично - писать ошибку и не обновлять такую сабтаску"
-            // Ответ: "Такого поведения не описано в задаче. ОК, исправил."
+        if (null == subtask.getEpicId()) {
+            System.out.println("No epic specified");
+
+            return null;
+        }
+
+        if (null == getEpic(subtask.getEpicId())) {
             System.out.println("Epic with id=" + subtask.getEpicId() + " not found. Updating subtask failed.");
 
             return null;
@@ -183,32 +179,6 @@ public class TaskManager {
     }
 
     public void deleteEpic(long id) {
-        Epic epic = getEpic(id);
-        // Комментарий ревьюера: "Обычно пишут сначало переменную, потом с чем сравнивать: if (epic == null)"
-        // Ответ: "Это нотация Йоды во избежание опечатки (случайного присваивания вместо сравнения) сначала константа, потом переменная
-        //  с древних времен когда не было нормальных IDE или они тормозили
-        //  https://ru.wikipedia.org/wiki/%D0%A3%D1%81%D0%BB%D0%BE%D0%B2%D0%B8%D1%8F_%D0%99%D0%BE%D0%B4%D1%8B"
-        if (null == epic) {
-            System.out.println("Epic with id=" + id + " not found");
-
-            return;
-        }
-
-        for (long subtaskId : epic.getSubtaskIds()) {
-            Subtask subtask = getSubtask(subtaskId);
-
-            if (null != subtask) {
-                // Комментарий ревьюера: "Тут следует удалить все сабтаски эпика из коллекции subtasks"
-                // Ответ: "Такого поведения не описано в задаче.
-                //  Добавил метод deleteEpicWithSubtasks"
-                subtask.setEpicId(0);
-            }
-        }
-
-        epics.remove(id);
-    }
-
-    public void deleteEpicWithSubtasks(long id) {
         Epic epic = getEpic(id);
 
         if (null == epic) {
@@ -246,23 +216,6 @@ public class TaskManager {
     }
 
     public void deleteEpics() {
-        for (Epic epic : getEpics()) {
-            for (long subtaskId : epic.getSubtaskIds()) {
-                Subtask subtask = getSubtask(subtaskId);
-
-                if (null != subtask) {
-                    // Комментарий ревьюера: "Тут следует удалить все сабтаски эпика из коллекции subtasks"
-                    // Ответ: "Такого поведения не описано в задаче.
-                    //  Добавил метод deleteEpicsWithSubtasks"
-                    subtask.setEpicId(0);
-                }
-            }
-        }
-
-        epics.clear();
-    }
-
-    public void deleteEpicsWithSubtasks() {
         for (Epic epic : getEpics()) {
             for (long subtaskId : epic.getSubtaskIds()) {
                 subtasks.remove(subtaskId);
