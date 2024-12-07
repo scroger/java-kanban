@@ -11,7 +11,7 @@ public final class Epic extends Task {
         super(title, description);
     }
 
-    public Epic(long id, String title, String description, TaskStatus status) {
+    public Epic(Long id, String title, String description, TaskStatus status) {
         super(id, title, description, status);
     }
 
@@ -22,7 +22,7 @@ public final class Epic extends Task {
     public void setSubtaskIds(List<Long> subtaskIds) {
         deleteSubtasks();
 
-        for (long subtaskId : subtaskIds) {
+        for (Long subtaskId : subtaskIds) {
             addSubtask(subtaskId);
         }
     }
@@ -31,11 +31,11 @@ public final class Epic extends Task {
         subtaskIds.clear();
     }
 
-    public void deleteSubtask(long id) {
+    public void deleteSubtask(Long id) {
         subtaskIds.remove(id);
     }
 
-    public void addSubtask(long id) {
+    public void addSubtask(Long id) {
         subtaskIds.add(id);
     }
 

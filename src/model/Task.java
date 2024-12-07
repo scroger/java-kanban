@@ -4,7 +4,7 @@ import java.util.Objects;
 
 public class Task {
 
-    private long id;
+    private Long id;
 
     private final String title;
 
@@ -18,14 +18,14 @@ public class Task {
         this.status = TaskStatus.NEW;
     }
 
-    public Task(long id, String title, String description, TaskStatus status) {
+    public Task(Long id, String title, String description, TaskStatus status) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.status = status;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

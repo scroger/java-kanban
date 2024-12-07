@@ -2,23 +2,15 @@ package model;
 
 public final class Subtask extends Task {
 
-    private long epicId;
+    private final Long epicId;
 
-    public Subtask(String title, String description) {
-        super(title, description);
-    }
-
-    public Subtask(String title, String description, long epicId) {
+    public Subtask(String title, String description, Long epicId) {
         super(title, description);
 
         this.epicId = epicId;
     }
 
-    public Subtask(long id, String title, String description, TaskStatus status) {
-        super(id, title, description, status);
-    }
-
-    public Subtask(long id, String title, String description, TaskStatus status, long epicId) {
+    public Subtask(Long id, String title, String description, TaskStatus status, Long epicId) {
         super(id, title, description, status);
 
         this.epicId = epicId;
@@ -26,10 +18,6 @@ public final class Subtask extends Task {
 
     public Long getEpicId() {
         return epicId;
-    }
-
-    public void setEpicId(long epicId) {
-        this.epicId = epicId;
     }
 
     @Override
