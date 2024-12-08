@@ -1,6 +1,5 @@
 package service;
 
-import java.util.Collection;
 import java.util.List;
 
 import model.Epic;
@@ -9,11 +8,11 @@ import model.Task;
 
 public interface TaskManager {
 
-    Collection<Task> getTasks();
+    List<Task> getTasks();
 
-    Collection<Epic> getEpics();
+    List<Epic> getEpics();
 
-    Collection<Subtask> getSubtasks();
+    List<Subtask> getSubtasks();
 
     Task getTask(Long id);
 
