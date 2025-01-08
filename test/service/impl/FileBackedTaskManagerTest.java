@@ -64,32 +64,43 @@ class FileBackedTaskManagerTest {
 
     @Test
     void shouldSaveTasks() throws IOException {
-        String header = "id,type,name,status,description,epic\r\n";
+        String header = String.format("%s%n", "id,type,name,status,description,epic");
 
         taskManager.createTask(new Task("Task1", "Description task1"));
-        Assertions.assertEquals(header +
-                "1,TASK,Task1,NEW,Description task1,\r\n", readFile());
+        Assertions.assertEquals(String.format("%s%s%n", header, "1,TASK,Task1,NEW,Description task1,"), readFile());
 
         Epic epic = taskManager.createEpic(new Epic("Epic2", "Description epic2"));
-        Assertions.assertEquals(header +
-                "1,TASK,Task1,NEW,Description task1,\r\n" +
-                "2,EPIC,Epic2,NEW,Description epic2,\r\n", readFile());
+        Assertions.assertEquals(String.format(
+                "%s%s%n%s%n",
+                header,
+                "1,TASK,Task1,NEW,Description task1,",
+                "2,EPIC,Epic2,NEW,Description epic2,"
+        ), readFile());
 
         Subtask subtask = taskManager.createSubtask(new Subtask("Sub Task3", "Description sub task3", epic.getId()));
-        Assertions.assertEquals(header +
-                "1,TASK,Task1,NEW,Description task1,\r\n" +
-                "2,EPIC,Epic2,NEW,Description epic2,\r\n" +
-                "3,SUBTASK,Sub Task3,NEW,Description sub task3,2\r\n", readFile());
+        Assertions.assertEquals(String.format(
+                "%s%s%n%s%n%s%n",
+                header,
+                "1,TASK,Task1,NEW,Description task1,",
+                "2,EPIC,Epic2,NEW,Description epic2,",
+                "3,SUBTASK,Sub Task3,NEW,Description sub task3,2"
+        ), readFile());
 
         taskManager.updateSubtask(new Subtask(subtask.getId(), "Sub Task2", "Description sub task3", TaskStatus.DONE, epic.getId()));
-        Assertions.assertEquals(header +
-                "1,TASK,Task1,NEW,Description task1,\r\n" +
-                "2,EPIC,Epic2,DONE,Description epic2,\r\n" +
-                "3,SUBTASK,Sub Task2,DONE,Description sub task3,2\r\n", readFile());
+        Assertions.assertEquals(String.format(
+                "%s%s%n%s%n%s%n",
+                header,
+                "1,TASK,Task1,NEW,Description task1,",
+                "2,EPIC,Epic2,DONE,Description epic2,",
+                "3,SUBTASK,Sub Task2,DONE,Description sub task3,2"
+        ), readFile());
 
         taskManager.deleteEpics();
-        Assertions.assertEquals(header +
-                "1,TASK,Task1,NEW,Description task1,\r\n", readFile());
+        Assertions.assertEquals(String.format(
+                "%s%s%n",
+                header,
+                "1,TASK,Task1,NEW,Description task1,"
+        ), readFile());
 
         taskManager.deleteTasks();
         Assertions.assertEquals(header, readFile());
