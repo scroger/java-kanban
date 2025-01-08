@@ -92,6 +92,10 @@ public class InMemoryTaskManager implements TaskManager {
             task.setStatus(TaskStatus.NEW);
         }
 
+        return internalCreateTask(task);
+    }
+
+    protected Task internalCreateTask(Task task) {
         tasks.put(task.getId(), task);
 
         return task;
@@ -105,6 +109,10 @@ public class InMemoryTaskManager implements TaskManager {
             epic.setStatus(TaskStatus.NEW);
         }
 
+        return internalCreateEpic(epic);
+    }
+
+    protected Epic internalCreateEpic(Epic epic) {
         epics.put(epic.getId(), epic);
 
         return epic;
@@ -112,6 +120,16 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Subtask createSubtask(Subtask subtask) {
+        subtask.setId(generateId());
+
+        if (TaskStatus.NEW != subtask.getStatus()) {
+            subtask.setStatus(TaskStatus.NEW);
+        }
+
+        return internalCreateSubtask(subtask);
+    }
+
+    protected Subtask internalCreateSubtask(Subtask subtask) {
         if (null == subtask.getEpicId()) {
             System.out.println("No epic specified");
 
@@ -123,12 +141,6 @@ public class InMemoryTaskManager implements TaskManager {
             System.out.println("Epic with id=" + subtask.getEpicId() + " not found");
 
             return null;
-        }
-
-        subtask.setId(generateId());
-
-        if (TaskStatus.NEW != subtask.getStatus()) {
-            subtask.setStatus(TaskStatus.NEW);
         }
 
         subtasks.put(subtask.getId(), subtask);
@@ -271,7 +283,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteEpics() {
-        deleteSubtasks();
+        internalDeleteSubtasks();
 
         deleteFromHistory(epics.keySet());
         epics.clear();
@@ -279,6 +291,10 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteSubtasks() {
+        internalDeleteSubtasks();
+    }
+
+    protected void internalDeleteSubtasks() {
         for (Epic epic : getEpics()) {
             epic.deleteSubtasks();
             epic.setStatus(TaskStatus.NEW);

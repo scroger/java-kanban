@@ -49,6 +49,10 @@ public class Task {
         this.status = status;
     }
 
+    public TaskType getType() {
+        return TaskType.TASK;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -70,6 +74,17 @@ public class Task {
                ", description='" + description + '\'' +
                ", status=" + status +
                '}';
+    }
+
+    public String toCSVString() {
+        return String.format(
+                "%d,%s,%s,%s,%s,",
+                getId(),
+                getType().name(),
+                getTitle(),
+                getStatus().name(),
+                getDescription()
+        );
     }
 
 }
