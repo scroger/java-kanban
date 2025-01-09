@@ -218,21 +218,27 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         FileBackedTaskManager taskManager2 = new FileBackedTaskManager(file, true);
         for (Task task : taskManager.getTasks()) {
-            if (!task.toCSVString().equals(taskManager2.getTask(task.getId()).toCSVString())) {
+            Task taskCompare = taskManager2.getTask(task.getId());
+
+            if (null == taskCompare || !task.toCSVString().equals(taskCompare.toCSVString())) {
                 System.out.println("Задачи не совпадают");
                 return;
             }
         }
 
         for (Epic epic : taskManager.getEpics()) {
-            if (!epic.toCSVString().equals(taskManager2.getEpic(epic.getId()).toCSVString())) {
+            Epic epicCompare = taskManager2.getEpic(epic.getId());
+
+            if (null == epicCompare || !epic.toCSVString().equals(epicCompare.toCSVString())) {
                 System.out.println("Эпики не совпадают");
                 return;
             }
         }
 
         for (Subtask subtask : taskManager.getSubtasks()) {
-            if (!subtask.toCSVString().equals(taskManager2.getSubtask(subtask.getId()).toCSVString())) {
+            Subtask subtaskCompare = taskManager2.getSubtask(subtask.getId());
+
+            if (null == subtaskCompare || !subtask.toCSVString().equals(subtaskCompare.toCSVString())) {
                 System.out.println("Подзадачи не совпадают");
                 return;
             }
