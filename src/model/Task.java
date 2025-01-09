@@ -12,6 +12,15 @@ public class Task {
 
     private TaskStatus status;
 
+    public static final String CSV_HEADER = String.format("%s%n", String.join(",", new String[]{
+            "id",
+            "type",
+            "name",
+            "status",
+            "description",
+            "epic"
+    }));
+
     public Task(String title, String description) {
         this.title = title;
         this.description = description;

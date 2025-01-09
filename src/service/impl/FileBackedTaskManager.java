@@ -127,14 +127,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private void save() {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
-            bw.write(String.format("%s%n", String.join(",", new String[]{
-                    "id",
-                    "type",
-                    "name",
-                    "status",
-                    "description",
-                    "epic"
-            })));
+            bw.write(Task.CSV_HEADER);
 
             for (Task task : getTasks()) {
                 bw.write(String.format("%s%n", task.toCSVString()));
