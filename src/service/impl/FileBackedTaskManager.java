@@ -158,6 +158,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public void load() {
         boolean headerSkipped = false;
+        long taskIdCounter = 0L;
         List<Subtask> subtasks = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
@@ -172,6 +173,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 String[] taskData = csvLine.split(",");
 
                 Long id = Long.parseLong(taskData[0]);
+                if (id > taskIdCounter) {
+                    taskIdCounter = id;
+                }
                 TaskType type = TaskType.valueOf(taskData[1]);
                 String title = taskData[2];
                 TaskStatus status = TaskStatus.valueOf(taskData[3]);
@@ -198,6 +202,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         for (Subtask subtask : subtasks) {
             internalCreateSubtask(subtask);
         }
+
+        setTaskIdCounter(taskIdCounter);
     }
 
     public static void main(String[] args) {

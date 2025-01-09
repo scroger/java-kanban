@@ -23,6 +23,10 @@ public class InMemoryTaskManager implements TaskManager {
     private final Map<Long, Subtask> subtasks = new HashMap<>();
     private final HistoryManager historyManager = Managers.getDefaultHistory();
 
+    protected void setTaskIdCounter(Long taskIdCounter) {
+        this.taskIdCounter = taskIdCounter;
+    }
+
     private Long generateId() {
         return ++taskIdCounter;
     }
