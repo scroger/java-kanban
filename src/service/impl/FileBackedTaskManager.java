@@ -23,12 +23,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public FileBackedTaskManager(File file) {
         this.file = file;
-    }
 
-    public FileBackedTaskManager(File file, boolean autoload) {
-        this.file = file;
-
-        if (autoload && file.exists()) {
+        if (file.exists() && file.isFile()) {
             load();
         }
     }
@@ -129,7 +125,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         save();
     }
 
-    public void save() {
+    private void save() {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
             bw.write(String.format("%s%n", String.join(",", new String[]{
                     "id",
@@ -156,7 +152,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    public void load() {
+    private void load() {
         boolean headerSkipped = false;
         long taskIdCounter = 0L;
         List<Subtask> subtasks = new ArrayList<>();
@@ -222,7 +218,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         taskManager.createSubtask(new Subtask("Subtask 1", "Subtask 1 description", epic2.getId()));
         taskManager.createSubtask(new Subtask("Subtask 2", "Subtask 2 description", epic2.getId()));
 
-        FileBackedTaskManager taskManager2 = new FileBackedTaskManager(file, true);
+        FileBackedTaskManager taskManager2 = new FileBackedTaskManager(file);
         for (Task task : taskManager.getTasks()) {
             Task taskCompare = taskManager2.getTask(task.getId());
 

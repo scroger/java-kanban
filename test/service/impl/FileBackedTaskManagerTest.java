@@ -5,7 +5,6 @@ import model.Subtask;
 import model.Task;
 import model.TaskStatus;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
@@ -13,24 +12,44 @@ import java.util.List;
 
 class FileBackedTaskManagerTest {
 
-    private FileBackedTaskManager taskManager;
-    private File file;
-
-    @BeforeEach
-    void beforeEach() throws IOException {
-        file = File.createTempFile("tasks", ".csv");
-
-        taskManager = new FileBackedTaskManager(file);
-    }
-
     @Test
-    void shouldLoadTasks() throws IOException {
-        taskManager.load();
+    void shouldNotLoadFileThatNotExist() {
+        File file = new File("testtasks.csv");
+        Assertions.assertFalse(file.exists());
+
+        FileBackedTaskManager taskManager = new FileBackedTaskManager(file);
 
         Assertions.assertEquals(0, taskManager.getTasks().size());
         Assertions.assertEquals(0, taskManager.getEpics().size());
         Assertions.assertEquals(0, taskManager.getSubtasks().size());
+    }
 
+    @Test
+    void shouldLoadEmptyFile() throws IOException {
+        File file = File.createTempFile("tasks", ".csv");
+        FileBackedTaskManager taskManager = new FileBackedTaskManager(file);
+
+        Assertions.assertEquals(0, taskManager.getTasks().size());
+        Assertions.assertEquals(0, taskManager.getEpics().size());
+        Assertions.assertEquals(0, taskManager.getSubtasks().size());
+    }
+
+    @Test
+    void shouldLoadFileWithHeaderOnly() throws IOException {
+        File file = File.createTempFile("tasks", ".csv");
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+            bw.write(String.format("%s%n", "id,type,name,status,description,epic"));
+        }
+        FileBackedTaskManager taskManager = new FileBackedTaskManager(file);
+
+        Assertions.assertEquals(0, taskManager.getTasks().size());
+        Assertions.assertEquals(0, taskManager.getEpics().size());
+        Assertions.assertEquals(0, taskManager.getSubtasks().size());
+    }
+
+    @Test
+    void shouldLoadTasks() throws IOException {
+        File file = File.createTempFile("tasks", ".csv");
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
             bw.write("""
                     id,type,name,status,description,epic
@@ -39,7 +58,7 @@ class FileBackedTaskManagerTest {
                     3,SUBTASK,Sub Task2,DONE,Description sub task3,2
                     """);
         }
-        taskManager.load();
+        FileBackedTaskManager taskManager = new FileBackedTaskManager(file);
 
         Assertions.assertEquals(1, taskManager.getTasks().size());
         Assertions.assertNotNull(taskManager.getTask(1L));
@@ -64,10 +83,13 @@ class FileBackedTaskManagerTest {
 
     @Test
     void shouldSaveTasks() throws IOException {
+        File file = File.createTempFile("tasks", ".csv");
+        FileBackedTaskManager taskManager = new FileBackedTaskManager(file);
+
         String header = String.format("%s%n", "id,type,name,status,description,epic");
 
         taskManager.createTask(new Task("Task1", "Description task1"));
-        Assertions.assertEquals(String.format("%s%s%n", header, "1,TASK,Task1,NEW,Description task1,"), readFile());
+        Assertions.assertEquals(String.format("%s%s%n", header, "1,TASK,Task1,NEW,Description task1,"), readFile(file));
 
         Epic epic = taskManager.createEpic(new Epic("Epic2", "Description epic2"));
         Assertions.assertEquals(String.format(
@@ -75,7 +97,7 @@ class FileBackedTaskManagerTest {
                 header,
                 "1,TASK,Task1,NEW,Description task1,",
                 "2,EPIC,Epic2,NEW,Description epic2,"
-        ), readFile());
+        ), readFile(file));
 
         Subtask subtask = taskManager.createSubtask(new Subtask("Sub Task3", "Description sub task3", epic.getId()));
         Assertions.assertEquals(String.format(
@@ -84,7 +106,7 @@ class FileBackedTaskManagerTest {
                 "1,TASK,Task1,NEW,Description task1,",
                 "2,EPIC,Epic2,NEW,Description epic2,",
                 "3,SUBTASK,Sub Task3,NEW,Description sub task3,2"
-        ), readFile());
+        ), readFile(file));
 
         taskManager.updateSubtask(new Subtask(subtask.getId(), "Sub Task2", "Description sub task3", TaskStatus.DONE, epic.getId()));
         Assertions.assertEquals(String.format(
@@ -93,25 +115,20 @@ class FileBackedTaskManagerTest {
                 "1,TASK,Task1,NEW,Description task1,",
                 "2,EPIC,Epic2,DONE,Description epic2,",
                 "3,SUBTASK,Sub Task2,DONE,Description sub task3,2"
-        ), readFile());
+        ), readFile(file));
 
         taskManager.deleteEpics();
         Assertions.assertEquals(String.format(
                 "%s%s%n",
                 header,
                 "1,TASK,Task1,NEW,Description task1,"
-        ), readFile());
+        ), readFile(file));
 
         taskManager.deleteTasks();
-        Assertions.assertEquals(header, readFile());
-
-        taskManager.load();
-        Assertions.assertEquals(0, taskManager.getTasks().size());
-        Assertions.assertEquals(0, taskManager.getEpics().size());
-        Assertions.assertEquals(0, taskManager.getSubtasks().size());
+        Assertions.assertEquals(header, readFile(file));
     }
 
-    private String readFile() throws IOException {
+    private String readFile(File file) throws IOException {
         StringBuilder data = new StringBuilder();
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
