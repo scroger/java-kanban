@@ -12,6 +12,15 @@ public class Task {
 
     private TaskStatus status;
 
+    public static final String CSV_HEADER = String.format("%s%n", String.join(",", new String[]{
+            "id",
+            "type",
+            "name",
+            "status",
+            "description",
+            "epic"
+    }));
+
     public Task(String title, String description) {
         this.title = title;
         this.description = description;
@@ -49,6 +58,10 @@ public class Task {
         this.status = status;
     }
 
+    public TaskType getType() {
+        return TaskType.TASK;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -70,6 +83,17 @@ public class Task {
                ", description='" + description + '\'' +
                ", status=" + status +
                '}';
+    }
+
+    public String toCSVString() {
+        return String.format(
+                "%d,%s,%s,%s,%s,",
+                getId(),
+                getType().name(),
+                getTitle(),
+                getStatus().name(),
+                getDescription()
+        );
     }
 
 }

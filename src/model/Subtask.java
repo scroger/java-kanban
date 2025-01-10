@@ -20,6 +20,10 @@ public final class Subtask extends Task {
         return epicId;
     }
 
+    public TaskType getType() {
+        return TaskType.SUBTASK;
+    }
+
     @Override
     public String toString() {
         return "Subtask{" +
@@ -30,4 +34,9 @@ public final class Subtask extends Task {
                ", status=" + super.getStatus() +
                "}";
     }
+
+    public String toCSVString() {
+        return String.format("%s%d", super.toCSVString(), getEpicId());
+    }
+
 }
