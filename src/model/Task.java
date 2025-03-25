@@ -16,7 +16,7 @@ public class Task {
 
     protected LocalDateTime startTime;
 
-    protected Duration duration = Duration.ZERO;
+    protected Duration duration;
 
     public static final String CSV_HEADER = String.format("%s%n", String.join(",", new String[]{
             "id",
@@ -35,27 +35,27 @@ public class Task {
         this.description = description;
     }
 
-    public Task(String title, String description, LocalDateTime startTime, long durationMin) {
+    public Task(String title, String description, LocalDateTime startTime, Duration duration) {
         this.title = title;
         this.description = description;
         this.startTime = startTime;
-        this.duration = Duration.ofMinutes(durationMin);
+        this.duration = duration;
     }
 
     public Task(Long id, String title, String description, TaskStatus status) {
         this.id = id;
         this.title = title;
         this.description = description;
-        this.status = status;
+        if (null != status) this.status = status;
     }
 
-    public Task(Long id, String title, String description, TaskStatus status, LocalDateTime startTime, long durationMin) {
+    public Task(Long id, String title, String description, TaskStatus status, LocalDateTime startTime, Duration duration) {
         this.id = id;
         this.title = title;
         this.description = description;
-        this.status = status;
+        if (null != status) this.status = status;
         this.startTime = startTime;
-        this.duration = Duration.ofMinutes(durationMin);
+        this.duration = duration;
     }
 
     public void setId(Long id) {
@@ -94,8 +94,16 @@ public class Task {
         return duration;
     }
 
+    public Long getDurationMinutes() {
+        if (null != duration) {
+            return duration.toMinutes();
+        }
+
+        return null;
+    }
+
     public LocalDateTime getEndTime() {
-        if (null == startTime) {
+        if (null == startTime || null == duration) {
             return null;
         }
 
@@ -118,26 +126,27 @@ public class Task {
     @Override
     public String toString() {
         return "Task{" +
-               "id=" + getId() +
-               ", title='" + getTitle() + '\'' +
-               ", description='" + getDescription() + '\'' +
-               ", status=" + getStatus() +
-               ", startTime=" + getStartTime() +
-               ", duration=" + getDuration() +
-               '}';
+                "id=" + getId() +
+                ", title='" + getTitle() + '\'' +
+                ", description='" + getDescription() + '\'' +
+                ", status=" + getStatus() +
+                ", startTime=" + getStartTime() +
+                ", duration=" + getDuration() +
+                '}';
     }
 
     public String toCSVString() {
         return String.format(
-                "%d,%s,%s,%s,%s,,%s,%d,%s",
+                "%d,%s,%s,%s,%s,%s,%s,%s,%s",
                 getId(),
                 getType().name(),
                 getTitle(),
                 getStatus().name(),
                 getDescription(),
+                null,
                 getStartTime(),
-                getDuration().toMinutes(),
-                getEndTime()
+                getDurationMinutes(),
+                null
         );
     }
 

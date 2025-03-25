@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
+import java.time.Duration;
 import java.util.List;
 
 class FileBackedTaskManagerTest {
@@ -54,9 +55,9 @@ class FileBackedTaskManagerTest {
             bw.write(String.format(
                     "%s%s%n%s%n%s%n",
                     Task.CSV_HEADER,
-                    "1,TASK,Task1,NEW,Description task1,",
-                    "2,EPIC,Epic2,DONE,Description epic2,",
-                    "3,SUBTASK,Sub Task2,DONE,Description sub task3,2"
+                    "1,TASK,Task1,NEW,Description task1,null,2025-03-25T20:57:26.098771533,60,null",
+                    "2,EPIC,Epic2,DONE,Description epic2,null,null,null,null",
+                    "3,SUBTASK,Sub Task2,DONE,Description sub task3,2,null,null,null"
             ));
         }
         FileBackedTaskManager taskManager = new FileBackedTaskManager(file);
@@ -66,6 +67,8 @@ class FileBackedTaskManagerTest {
         Assertions.assertEquals("Task1", taskManager.getTask(1L).getTitle());
         Assertions.assertEquals("Description task1", taskManager.getTask(1L).getDescription());
         Assertions.assertEquals(TaskStatus.NEW, taskManager.getTask(1L).getStatus());
+        Assertions.assertNotNull(taskManager.getTask(1L).getStartTime());
+        Assertions.assertEquals(Duration.ofMinutes(60), taskManager.getTask(1L).getDuration());
 
         Assertions.assertEquals(1, taskManager.getEpics().size());
         Assertions.assertNotNull(taskManager.getEpic(2L));
@@ -88,39 +91,39 @@ class FileBackedTaskManagerTest {
         FileBackedTaskManager taskManager = new FileBackedTaskManager(file);
 
         taskManager.createTask(new Task("Task1", "Description task1"));
-        Assertions.assertEquals(String.format("%s%s%n", Task.CSV_HEADER, "1,TASK,Task1,NEW,Description task1,"), readFile(file));
+        Assertions.assertEquals(String.format("%s%s%n", Task.CSV_HEADER, "1,TASK,Task1,NEW,Description task1,null,null,null,null"), readFile(file));
 
         Epic epic = taskManager.createEpic(new Epic("Epic2", "Description epic2"));
         Assertions.assertEquals(String.format(
                 "%s%s%n%s%n",
                 Task.CSV_HEADER,
-                "1,TASK,Task1,NEW,Description task1,",
-                "2,EPIC,Epic2,NEW,Description epic2,"
+                "1,TASK,Task1,NEW,Description task1,null,null,null,null",
+                "2,EPIC,Epic2,NEW,Description epic2,null,null,null,null"
         ), readFile(file));
 
         Subtask subtask = taskManager.createSubtask(new Subtask("Sub Task3", "Description sub task3", epic.getId()));
         Assertions.assertEquals(String.format(
                 "%s%s%n%s%n%s%n",
                 Task.CSV_HEADER,
-                "1,TASK,Task1,NEW,Description task1,",
-                "2,EPIC,Epic2,NEW,Description epic2,",
-                "3,SUBTASK,Sub Task3,NEW,Description sub task3,2"
+                "1,TASK,Task1,NEW,Description task1,null,null,null,null",
+                "2,EPIC,Epic2,NEW,Description epic2,null,null,null,null",
+                "3,SUBTASK,Sub Task3,NEW,Description sub task3,2,null,null,null"
         ), readFile(file));
 
         taskManager.updateSubtask(new Subtask(subtask.getId(), "Sub Task2", "Description sub task3", TaskStatus.DONE, epic.getId()));
         Assertions.assertEquals(String.format(
                 "%s%s%n%s%n%s%n",
                 Task.CSV_HEADER,
-                "1,TASK,Task1,NEW,Description task1,",
-                "2,EPIC,Epic2,DONE,Description epic2,",
-                "3,SUBTASK,Sub Task2,DONE,Description sub task3,2"
+                "1,TASK,Task1,NEW,Description task1,null,null,null,null",
+                "2,EPIC,Epic2,DONE,Description epic2,null,null,null,null",
+                "3,SUBTASK,Sub Task2,DONE,Description sub task3,2,null,null,null"
         ), readFile(file));
 
         taskManager.deleteEpics();
         Assertions.assertEquals(String.format(
                 "%s%s%n",
                 Task.CSV_HEADER,
-                "1,TASK,Task1,NEW,Description task1,"
+                "1,TASK,Task1,NEW,Description task1,null,null,null,null"
         ), readFile(file));
 
         taskManager.deleteTasks();

@@ -15,6 +15,12 @@ public final class Epic extends Task {
         super(title, description);
     }
 
+    public Epic(String title, String description, LocalDateTime endTime) {
+        super(title, description);
+
+        this.endTime = endTime;
+    }
+
     public Epic(Long id, String title, String description, TaskStatus status) {
         super(id, title, description, status);
     }
@@ -87,12 +93,15 @@ public final class Epic extends Task {
     @Override
     public String toCSVString() {
         return String.format(
-                "%d,%s,%s,%s,%s,,,,%s",
+                "%d,%s,%s,%s,%s,%s,%s,%s,%s",
                 getId(),
                 getType().name(),
                 getTitle(),
                 getStatus().name(),
                 getDescription(),
+                null,
+                null,
+                null,
                 getEndTime()
         );
     }
