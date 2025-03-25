@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -170,13 +171,18 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 TaskStatus status = TaskStatus.valueOf(taskData[3]);
                 String description = taskData[4];
 
+                Long epicId = null != taskData[5] ? Long.parseLong(taskData[5]) : null;
+                LocalDateTime startTime = null != taskData[6] ? LocalDateTime.parse(taskData[6]) : null;
+                Long duration = null != taskData[7] ? Long.parseLong(taskData[7]) : null;
+                LocalDateTime endTime = null != taskData[8] ? LocalDateTime.parse(taskData[8]) : null;
+
                 switch (type) {
                     case TaskType.TASK:
                         internalCreateTask(new Task(id, title, description, status));
                     break;
 
                     case TaskType.SUBTASK:
-                        subtasks.add(new Subtask(id, title, description, status, Long.parseLong(taskData[5])));
+                        subtasks.add(new Subtask(id, title, description, status, epicId));
                     break;
 
                     case TaskType.EPIC:

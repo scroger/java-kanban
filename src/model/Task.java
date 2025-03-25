@@ -1,5 +1,7 @@
 package model;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Task {
@@ -10,7 +12,11 @@ public class Task {
 
     private final String description;
 
-    private TaskStatus status;
+    private TaskStatus status = TaskStatus.NEW;
+
+    protected LocalDateTime startTime;
+
+    protected Duration duration = Duration.ZERO;
 
     public static final String CSV_HEADER = String.format("%s%n", String.join(",", new String[]{
             "id",
@@ -18,13 +24,22 @@ public class Task {
             "name",
             "status",
             "description",
-            "epic"
+            "epic",
+            "startTime",
+            "duration",
+            "endTime"
     }));
 
     public Task(String title, String description) {
         this.title = title;
         this.description = description;
-        this.status = TaskStatus.NEW;
+    }
+
+    public Task(String title, String description, LocalDateTime startTime, long durationMin) {
+        this.title = title;
+        this.description = description;
+        this.startTime = startTime;
+        this.duration = Duration.ofMinutes(durationMin);
     }
 
     public Task(Long id, String title, String description, TaskStatus status) {
@@ -32,6 +47,15 @@ public class Task {
         this.title = title;
         this.description = description;
         this.status = status;
+    }
+
+    public Task(Long id, String title, String description, TaskStatus status, LocalDateTime startTime, long durationMin) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.status = status;
+        this.startTime = startTime;
+        this.duration = Duration.ofMinutes(durationMin);
     }
 
     public void setId(Long id) {
@@ -62,6 +86,22 @@ public class Task {
         return TaskType.TASK;
     }
 
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public LocalDateTime getEndTime() {
+        if (null == startTime) {
+            return null;
+        }
+
+        return startTime.plus(duration);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -78,21 +118,26 @@ public class Task {
     @Override
     public String toString() {
         return "Task{" +
-               "id=" + id +
-               ", title='" + title + '\'' +
-               ", description='" + description + '\'' +
-               ", status=" + status +
+               "id=" + getId() +
+               ", title='" + getTitle() + '\'' +
+               ", description='" + getDescription() + '\'' +
+               ", status=" + getStatus() +
+               ", startTime=" + getStartTime() +
+               ", duration=" + getDuration() +
                '}';
     }
 
     public String toCSVString() {
         return String.format(
-                "%d,%s,%s,%s,%s,",
+                "%d,%s,%s,%s,%s,,%s,%d,%s",
                 getId(),
                 getType().name(),
                 getTitle(),
                 getStatus().name(),
-                getDescription()
+                getDescription(),
+                getStartTime(),
+                getDuration().toMinutes(),
+                getEndTime()
         );
     }
 
