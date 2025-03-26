@@ -49,7 +49,8 @@ public class Task {
         if (null != status) this.status = status;
     }
 
-    public Task(Long id, String title, String description, TaskStatus status, LocalDateTime startTime, Duration duration) {
+    public Task(Long id, String title, String description, TaskStatus status, LocalDateTime startTime,
+                Duration duration) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -108,6 +109,15 @@ public class Task {
         }
 
         return startTime.plus(duration);
+    }
+
+    public boolean intersectsWithTask(Task task) {
+        if (null == startTime || null == duration || null == task.getStartTime() || null == task.getDuration()) {
+            return false;
+        }
+
+        return !(task.getEndTime().isBefore(startTime)
+               || task.getStartTime().isAfter(getEndTime()));
     }
 
     @Override

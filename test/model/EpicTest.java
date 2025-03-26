@@ -1,7 +1,9 @@
 package model;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -53,6 +55,22 @@ class EpicTest {
         assertEquals(2, epic.getSubtaskIds().size());
         assertEquals(2L, epic.getSubtaskIds().getFirst());
         assertEquals(4L, epic.getSubtaskIds().getLast());
+    }
+
+    @Test
+    void testToString() {
+        final Epic epic = new Epic("Epic", "Epic description", LocalDateTime.of(2025, 3, 28, 12, 10));
+
+        Assertions.assertEquals("Epic{" +
+                                "id=null" +
+                                ", title='Epic'" +
+                                ", description='Epic description'" +
+                                ", status=NEW" +
+                                ", subtaskIds=[]" +
+                                ", startTime=null" +
+                                ", duration=null" +
+                                ", endTime=2025-03-28T12:10" +
+                                "}", epic.toString());
     }
 
     @Test
