@@ -1,5 +1,7 @@
 package model;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,12 +9,26 @@ public final class Epic extends Task {
 
     private final List<Long> subtaskIds = new ArrayList<>();
 
+    private LocalDateTime endTime;
+
     public Epic(String title, String description) {
         super(title, description);
     }
 
+    public Epic(String title, String description, LocalDateTime endTime) {
+        super(title, description);
+
+        this.endTime = endTime;
+    }
+
     public Epic(Long id, String title, String description, TaskStatus status) {
         super(id, title, description, status);
+    }
+
+    public Epic(Long id, String title, String description, TaskStatus status, LocalDateTime endTime) {
+        super(id, title, description, status);
+
+        this.endTime = endTime;
     }
 
     public List<Long> getSubtaskIds() {
@@ -29,6 +45,23 @@ public final class Epic extends Task {
 
     public TaskType getType() {
         return TaskType.EPIC;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    @Override
+    public LocalDateTime getEndTime() {
+        return endTime;
     }
 
     public void deleteSubtasks() {
@@ -50,8 +83,27 @@ public final class Epic extends Task {
                ", title='" + super.getTitle() + '\'' +
                ", description='" + super.getDescription() + '\'' +
                ", status=" + super.getStatus() +
-               ", subtaskIds=" + subtaskIds +
+               ", subtaskIds=" + getSubtaskIds() +
+               ", startTime=" + super.getStartTime() +
+               ", duration=" + super.getDuration() +
+               ", endTime=" + getEndTime() +
                "}";
+    }
+
+    @Override
+    public String toCSVString() {
+        return String.format(
+                "%d,%s,%s,%s,%s,%s,%s,%s,%s",
+                getId(),
+                getType().name(),
+                getTitle(),
+                getStatus().name(),
+                getDescription(),
+                null,
+                null,
+                null,
+                getEndTime()
+        );
     }
 
 }

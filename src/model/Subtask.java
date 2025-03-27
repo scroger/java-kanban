@@ -1,5 +1,8 @@
 package model;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 public final class Subtask extends Task {
 
     private final Long epicId;
@@ -10,8 +13,21 @@ public final class Subtask extends Task {
         this.epicId = epicId;
     }
 
+    public Subtask(String title, String description, Long epicId, LocalDateTime startTime, Duration duration) {
+        super(title, description, startTime, duration);
+
+        this.epicId = epicId;
+    }
+
     public Subtask(Long id, String title, String description, TaskStatus status, Long epicId) {
         super(id, title, description, status);
+
+        this.epicId = epicId;
+    }
+
+    public Subtask(Long id, String title, String description, TaskStatus status, Long epicId, LocalDateTime startTime,
+                   Duration duration) {
+        super(id, title, description, status, startTime, duration);
 
         this.epicId = epicId;
     }
@@ -20,6 +36,7 @@ public final class Subtask extends Task {
         return epicId;
     }
 
+    @Override
     public TaskType getType() {
         return TaskType.SUBTASK;
     }
@@ -28,15 +45,29 @@ public final class Subtask extends Task {
     public String toString() {
         return "Subtask{" +
                "id=" + super.getId() +
-               ", epicId=" + epicId +
+               ", epicId=" + getEpicId() +
                ", title='" + super.getTitle() + '\'' +
                ", description='" + super.getDescription() + '\'' +
                ", status=" + super.getStatus() +
+               ", startTime=" + super.getStartTime() +
+               ", duration=" + super.getDuration() +
                "}";
     }
 
+    @Override
     public String toCSVString() {
-        return String.format("%s%d", super.toCSVString(), getEpicId());
+        return String.format(
+                "%d,%s,%s,%s,%s,%d,%s,%s,%s",
+                getId(),
+                getType().name(),
+                getTitle(),
+                getStatus().name(),
+                getDescription(),
+                getEpicId(),
+                getStartTime(),
+                getDurationMinutes(),
+                null
+        );
     }
 
 }

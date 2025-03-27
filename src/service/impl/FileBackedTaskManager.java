@@ -14,7 +14,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
@@ -159,28 +162,35 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     continue;
                 }
 
-                String[] taskData = csvLine.split(",");
+                List<String> taskData = Arrays.stream(csvLine.split(","))
+                        .map(csvValue -> "null".equalsIgnoreCase(csvValue) ? null : csvValue)
+                        .toList();
 
-                Long id = Long.parseLong(taskData[0]);
+                Long id = Long.parseLong(taskData.get(0));
                 if (id > taskIdCounter) {
                     taskIdCounter = id;
                 }
-                TaskType type = TaskType.valueOf(taskData[1]);
-                String title = taskData[2];
-                TaskStatus status = TaskStatus.valueOf(taskData[3]);
-                String description = taskData[4];
+                TaskType type = TaskType.valueOf(taskData.get(1));
+                String title = taskData.get(2);
+                TaskStatus status = TaskStatus.valueOf(taskData.get(3));
+                String description = taskData.get(4);
+
+                Long epicId = null != taskData.get(5) ? Long.parseLong(taskData.get(5)) : null;
+                LocalDateTime startTime = null != taskData.get(6) ? LocalDateTime.parse(taskData.get(6)) : null;
+                Duration duration = null != taskData.get(7) ? Duration.ofMinutes(Long.parseLong(taskData.get(7))) : null;
+                LocalDateTime endTime = null != taskData.get(8) ? LocalDateTime.parse(taskData.get(8)) : null;
 
                 switch (type) {
                     case TaskType.TASK:
-                        internalCreateTask(new Task(id, title, description, status));
+                        internalCreateTask(new Task(id, title, description, status, startTime, duration));
                     break;
 
                     case TaskType.SUBTASK:
-                        subtasks.add(new Subtask(id, title, description, status, Long.parseLong(taskData[5])));
+                        subtasks.add(new Subtask(id, title, description, status, epicId, startTime, duration));
                     break;
 
                     case TaskType.EPIC:
-                        internalCreateEpic(new Epic(id, title, description, status));
+                        internalCreateEpic(new Epic(id, title, description, status, endTime));
                     break;
                 }
             }
@@ -199,13 +209,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         File file = new File("tasks.csv");
 
         FileBackedTaskManager taskManager = new FileBackedTaskManager(file);
-        taskManager.createTask(new Task("Task 1", "Task 1 description"));
-        taskManager.createTask(new Task("Task 2", "Task 2 description"));
+        taskManager.createTask(new Task("Task 1", "Task 1 description", LocalDateTime.now(), null));
+        taskManager.createTask(new Task("Task 2", "Task 2 description", null, Duration.ofMinutes(50)));
 
-        Epic epic1 = taskManager.createEpic(new Epic("Epic 1", "Epic 1 description"));
+        Epic epic1 = taskManager.createEpic(new Epic("Epic 1", "Epic 1 description", LocalDateTime.now().minusHours(5)));
         Epic epic2 = taskManager.createEpic(new Epic("Epic 2", "Epic 2 description"));
 
-        taskManager.createSubtask(new Subtask("Subtask 1", "Subtask 1 description", epic1.getId()));
+        taskManager.createSubtask(new Subtask("Subtask 1", "Subtask 1 description", epic1.getId(), LocalDateTime.now().minusHours(1), Duration.ofHours(1)));
         taskManager.createSubtask(new Subtask("Subtask 2", "Subtask 2 description", epic1.getId()));
 
         taskManager.createSubtask(new Subtask("Subtask 1", "Subtask 1 description", epic2.getId()));

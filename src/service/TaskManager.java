@@ -1,6 +1,7 @@
 package service;
 
 import java.util.List;
+import java.util.Set;
 
 import model.Epic;
 import model.Subtask;
@@ -47,5 +48,7 @@ public interface TaskManager {
     List<Subtask> getEpicSubtasks(Epic epic);
 
     List<Task> getHistory();
+
+    Set<Task> getPrioritizedTasks();
 
 }
