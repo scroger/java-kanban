@@ -28,7 +28,7 @@ public class InMemoryTaskManager implements TaskManager {
     private final Map<Long, Epic> epics = new HashMap<>();
     private final Map<Long, Subtask> subtasks = new HashMap<>();
     private final HistoryManager historyManager = Managers.getDefaultHistory();
-    private final TreeSet<Task> prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
+    private final Set<Task> prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
 
     protected void setTaskIdCounter(Long taskIdCounter) {
         this.taskIdCounter = taskIdCounter;
@@ -377,8 +377,8 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public TreeSet<Task> getPrioritizedTasks() {
-        return prioritizedTasks;
+    public Set<Task> getPrioritizedTasks() {
+        return Set.copyOf(prioritizedTasks);
     }
 
     private void deletePrioritizedTasksByType(TaskType taskType) {
@@ -389,10 +389,6 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private boolean intersectsTasks(Task task) {
-        if (null == task.getStartTime() || null == task.getDuration()) {
-            return false;
-        }
-
         return prioritizedTasks.stream().anyMatch(task::intersectsWithTask);
     }
 

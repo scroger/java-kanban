@@ -3,6 +3,7 @@ package service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -543,6 +544,21 @@ public abstract class TaskManagerTest<T extends TaskManager> {
                 LocalDateTime.now().plusDays(1), Duration.ofMinutes(25)));
 
         assertEquals(2, taskManager.getPrioritizedTasks().size());
+    }
+
+    @Test
+    void shouldReturnImmutablePrioritizedTasks() {
+        taskManager.createTask(new Task("Task 1", "Task 1 description", LocalDateTime.now(), Duration.ofMinutes(10)));
+        taskManager.createTask(new Task("Task 2", "Task 2 description", LocalDateTime.now().plusHours(2), Duration.ofMinutes(10)));
+
+        Set<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
+        assertEquals(2, prioritizedTasks.size());
+
+        Task task = new Task("Task 3", "Task 3 description");
+        Assertions.assertThrows(
+                UnsupportedOperationException.class,
+                () -> prioritizedTasks.add(task)
+        );
     }
 
     private Subtask updateSubtaskStatus(Subtask subtask, TaskStatus status) {

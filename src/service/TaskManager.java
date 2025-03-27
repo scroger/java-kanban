@@ -1,7 +1,7 @@
 package service;
 
 import java.util.List;
-import java.util.TreeSet;
+import java.util.Set;
 
 import model.Epic;
 import model.Subtask;
@@ -49,6 +49,6 @@ public interface TaskManager {
 
     List<Task> getHistory();
 
-    TreeSet<Task> getPrioritizedTasks();
+    Set<Task> getPrioritizedTasks();
 
 }
