@@ -12,6 +12,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
+import exceptions.EpicNotSpecifiedException;
+import exceptions.NotFoundException;
+import exceptions.TaskInstersectsException;
 import model.Epic;
 import model.Subtask;
 import model.Task;
@@ -57,42 +60,33 @@ public class InMemoryTaskManager implements TaskManager {
     public Task getTask(Long id) {
         Optional<Task> optionalTask = Optional.ofNullable(tasks.get(id));
 
-        optionalTask.ifPresentOrElse(
-                historyManager::add,
-                () -> System.out.println("Task with id=" + id + " not found")
-        );
+        optionalTask.ifPresent(historyManager::add);
 
-        return optionalTask.orElse(null);
+        return optionalTask.orElseThrow(() -> new NotFoundException("Task with id=" + id + " not found"));
     }
 
     @Override
     public Epic getEpic(Long id) {
         Optional<Epic> optionalEpic = Optional.ofNullable(epics.get(id));
 
-        optionalEpic.ifPresentOrElse(
-                historyManager::add,
-                () -> System.out.println("Epic with id=" + id + " not found")
-        );
+        optionalEpic.ifPresent(historyManager::add);
 
-        return optionalEpic.orElse(null);
+        return optionalEpic.orElseThrow(() -> new NotFoundException("Epic with id=" + id + " not found"));
     }
 
     @Override
     public Subtask getSubtask(Long id) {
         Optional<Subtask> optionalSubtask = Optional.ofNullable(subtasks.get(id));
 
-        optionalSubtask.ifPresentOrElse(
-                historyManager::add,
-                () -> System.out.println("Subtask with id=" + id + " not found")
-        );
+        optionalSubtask.ifPresent(historyManager::add);
 
-        return optionalSubtask.orElse(null);
+        return optionalSubtask.orElseThrow(() -> new NotFoundException("Subtask with id=" + id + " not found"));
     }
 
     @Override
     public Task createTask(Task task) {
         if (intersectsTasks(task)) {
-            return null;
+            throw new TaskInstersectsException("Can not create task because it intersects with another one");
         }
 
         task.setId(generateId());
@@ -133,7 +127,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Subtask createSubtask(Subtask subtask) {
         if (intersectsTasks(subtask)) {
-            return null;
+            throw new TaskInstersectsException("Can not create subtask because it intersects with another one");
         }
 
         subtask.setId(generateId());
@@ -147,16 +141,12 @@ public class InMemoryTaskManager implements TaskManager {
 
     protected Subtask internalCreateSubtask(Subtask subtask) {
         if (null == subtask.getEpicId()) {
-            System.out.println("No epic specified");
-
-            return null;
+            throw new EpicNotSpecifiedException("No epic specified");
         }
 
         Epic epic = epics.get(subtask.getEpicId());
         if (null == epic) {
-            System.out.println("Epic with id=" + subtask.getEpicId() + " not found");
-
-            return null;
+            throw new NotFoundException("Epic with id=" + subtask.getEpicId() + " not found");
         }
 
         subtasks.put(subtask.getId(), subtask);
@@ -175,9 +165,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Task updateTask(Task task) {
         if (!tasks.containsKey(task.getId())) {
-            System.out.println("Task with id=" + task.getId() + " not found");
-
-            return null;
+            throw new NotFoundException("Task with id=" + task.getId() + " not found");
         }
 
         tasks.put(task.getId(), task);
@@ -188,9 +176,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Epic updateEpic(Epic epic) {
         if (!epics.containsKey(epic.getId())) {
-            System.out.println("Epic with id=" + epic.getId() + " not found");
-
-            return null;
+            throw new NotFoundException("Epic with id=" + epic.getId() + " not found");
         }
 
         // Восстанавливаем привязанные подзадачи
@@ -211,21 +197,15 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Subtask updateSubtask(Subtask subtask) {
         if (!subtasks.containsKey(subtask.getId())) {
-            System.out.println("Subtask with id=" + subtask.getId() + " not found");
-
-            return null;
+            throw new NotFoundException("Subtask with id=" + subtask.getId() + " not found");
         }
 
         if (null == subtask.getEpicId()) {
-            System.out.println("No epic specified");
-
-            return null;
+            throw new EpicNotSpecifiedException("No epic specified");
         }
 
         if (null == epics.get(subtask.getEpicId())) {
-            System.out.println("Epic with id=" + subtask.getEpicId() + " not found. Updating subtask failed.");
-
-            return null;
+            throw new NotFoundException("Epic with id=" + subtask.getEpicId() + " not found. Updating subtask failed.");
         }
 
         subtasks.put(subtask.getId(), subtask);
@@ -252,9 +232,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteTask(Long id) {
         if (!tasks.containsKey(id)) {
-            System.out.println("Task with id=" + id + " not found");
-
-            return;
+            throw new NotFoundException("Task with id=" + id + " not found");
         }
 
         prioritizedTasks.remove(tasks.get(id));
@@ -267,9 +245,7 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = epics.get(id);
 
         if (null == epic) {
-            System.out.println("Epic with id=" + id + " not found");
-
-            return;
+            throw new NotFoundException("Epic with id=" + id + " not found");
         }
 
         epic.getSubtaskIds().forEach(subtaskId -> {
@@ -285,9 +261,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteSubtask(Long id) {
         Subtask subtask = subtasks.get(id);
         if (null == subtask) {
-            System.out.println("Subtask with id=" + id + " not found");
-
-            return;
+            throw new NotFoundException("Subtask with id=" + id + " not found");
         }
 
         prioritizedTasks.remove(subtask);
