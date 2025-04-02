@@ -8,6 +8,9 @@ import java.util.Set;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import exceptions.EpicNotSpecifiedException;
+import exceptions.NotFoundException;
+import exceptions.TaskInstersectsException;
 import model.Epic;
 import model.Subtask;
 import model.Task;
@@ -15,7 +18,7 @@ import model.TaskStatus;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public abstract class TaskManagerTest<T extends TaskManager> {
 
@@ -57,7 +60,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void shouldNotReturnTaskThatNotExistAndShouldNotUpdateHistory() {
-        assertNull(taskManager.getTask(999L));
+        assertThrows(NotFoundException.class, () -> taskManager.getTask(999L));
         assertEquals(0, taskManager.getHistory().size());
     }
 
@@ -72,7 +75,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void shouldNotReturnEpicThatNotExistAndShouldNotUpdateHistory() {
-        assertNull(taskManager.getEpic(999L));
+        assertThrows(NotFoundException.class, () -> taskManager.getEpic(999L));
         assertEquals(0, taskManager.getHistory().size());
     }
 
@@ -87,7 +90,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void shouldNotReturnSubtaskThatNotExistAndShouldNotUpdateHistory() {
-        assertNull(taskManager.getSubtask(999L));
+        assertThrows(NotFoundException.class, () -> taskManager.getSubtask(999L));
         assertEquals(0, taskManager.getHistory().size());
     }
 
@@ -128,12 +131,14 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void shouldNotCreateSubtaskWithoutEpic() {
-        assertNull(taskManager.createSubtask(new Subtask("Subtask", "Subtask description", null)));
+        final Subtask testSubtask = new Subtask("Subtask", "Subtask description", null);
+        assertThrows(EpicNotSpecifiedException.class, () -> taskManager.createSubtask(testSubtask));
     }
 
     @Test
     void shouldNotCreateSubtaskWithEpicThatNotExist() {
-        assertNull(taskManager.createSubtask(new Subtask("Subtask", "Subtask description", 1L)));
+        final Subtask testSubtask = new Subtask("Subtask", "Subtask description", 1L);
+        assertThrows(NotFoundException.class, () -> taskManager.createSubtask(testSubtask));
     }
 
     @Test
@@ -156,7 +161,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void shouldNotUpdateTaskThatNotExist() {
-        assertNull(taskManager.updateTask(new Task(999L, "Task", "Task description", TaskStatus.DONE)));
+        final Task task = new Task(999L, "Task", "Task description", TaskStatus.DONE);
+        assertThrows(NotFoundException.class, () -> taskManager.updateTask(task));
     }
 
     @Test
@@ -170,7 +176,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void shouldNotUpdateEpicThatNotExist() {
-        assertNull(taskManager.updateEpic(new Epic(999L, "Epic", "Epic description", TaskStatus.DONE)));
+        final Epic testEpic = new Epic(999L, "Epic", "Epic description", TaskStatus.DONE);
+        assertThrows(NotFoundException.class, () -> taskManager.updateEpic(testEpic));
     }
 
     @Test
@@ -185,7 +192,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void shouldNotUpdateSubtaskThatNotExist() {
-        assertNull(taskManager.updateSubtask(new Subtask(999L, "Subtask", "Subtask description", TaskStatus.DONE, null)));
+        final Subtask subtask = new Subtask(999L, "Subtask", "Subtask description", TaskStatus.DONE, null);
+        assertThrows(NotFoundException.class, () -> taskManager.updateSubtask(subtask));
     }
 
     @Test
@@ -193,7 +201,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         Epic epic = taskManager.createEpic(new Epic("Epic", "Epic description"));
         Subtask subtask = taskManager.createSubtask(new Subtask("Subtask", "Subtask description", epic.getId()));
 
-        assertNull(taskManager.updateSubtask(new Subtask(subtask.getId(), "Subtask", "Subtask description", TaskStatus.DONE, null)));
+        final Subtask testSubtask = new Subtask(subtask.getId(), "Subtask", "Subtask description", TaskStatus.DONE, null);
+        assertThrows(EpicNotSpecifiedException.class, () -> taskManager.updateSubtask(testSubtask));
     }
 
     @Test
@@ -201,7 +210,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         Epic epic = taskManager.createEpic(new Epic("Epic", "Epic description"));
         Subtask subtask = taskManager.createSubtask(new Subtask("Subtask", "Subtask description", epic.getId()));
 
-        assertNull(taskManager.updateSubtask(new Subtask(subtask.getId(), "Subtask", "Subtask description", TaskStatus.DONE, 999L)));
+        final Subtask testSubtask = new Subtask(subtask.getId(), "Subtask", "Subtask description", TaskStatus.DONE, 999L);
+        assertThrows(NotFoundException.class, () -> taskManager.updateSubtask(testSubtask));
     }
 
     @Test
@@ -264,7 +274,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldNotDeleteTaskThatNotExist() {
         taskManager.createTask(new Task("Task", "Task description"));
-        taskManager.deleteTask(999L);
+        assertThrows(NotFoundException.class, () -> taskManager.deleteTask(999L));
 
         assertEquals(1, taskManager.getTasks().size());
     }
@@ -285,7 +295,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldNotDeleteEpicThatNotExist() {
         taskManager.createEpic(new Epic("Epic", "Epic description"));
-        taskManager.deleteEpic(999L);
+        assertThrows(NotFoundException.class, () -> taskManager.deleteEpic(999L));
 
         assertEquals(1, taskManager.getEpics().size());
     }
@@ -319,7 +329,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     void shouldNotDeleteSubtaskThatNotExist() {
         final Epic epic = taskManager.createEpic(new Epic("Epic", "Epic description"));
         taskManager.createSubtask(new Subtask("Subtask", "Subtask description", epic.getId()));
-        taskManager.deleteSubtask(999L);
+        assertThrows(NotFoundException.class, () -> taskManager.deleteSubtask(999L));
 
         assertEquals(1, taskManager.getSubtasks().size());
     }
@@ -478,14 +488,16 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     void shouldNotAddIntersectedTasks() {
         Task task1 = taskManager.createTask(new Task("Task 1", "Task 1 description", LocalDateTime.now(), Duration.ofMinutes(10)));
         taskManager.createTask(new Task("Task 2", "Task 2 description"));
-        taskManager.createTask(new Task("Task 3", "Task 3 description", LocalDateTime.now().minusMinutes(3), Duration.ofMinutes(10)));
+        final Task testTask = new Task("Task 3", "Task 3 description", LocalDateTime.now().minusMinutes(3), Duration.ofMinutes(10));
+        assertThrows(TaskInstersectsException.class, () -> taskManager.createTask(testTask));
         Task task4 = taskManager.createTask(new Task("Task 4", "Task 4 description", LocalDateTime.now().plusHours(2), Duration.ofMinutes(10)));
 
         assertEquals(2, taskManager.getPrioritizedTasks().size());
         assertEquals(3, taskManager.getTasks().size());
 
         Epic epic1 = taskManager.createEpic(new Epic("Epic 1", "Epic 1 description"));
-        taskManager.createSubtask(new Subtask("Subtask 1", "Subtask 1 description", epic1.getId(), LocalDateTime.now(), Duration.ofMinutes(10)));
+        final Subtask testSubtask = new Subtask("Subtask 1", "Subtask 1 description", epic1.getId(), LocalDateTime.now(), Duration.ofMinutes(10));
+        assertThrows(TaskInstersectsException.class, () -> taskManager.createSubtask(testSubtask));
         Subtask subtask2 = taskManager.createSubtask(new Subtask("Subtask 2", "Subtask 2 descriprion", epic1.getId(), LocalDateTime.now().plusDays(1), Duration.ofMinutes(25)));
 
         assertEquals(3, taskManager.getPrioritizedTasks().size());
